@@ -20,7 +20,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.Toast;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -82,8 +81,6 @@ public class MainActivity extends AppCompatActivity {
    * Starts a sign-in activity using {@link #REQUEST_CODE_SIGN_IN}.
    */
   private void requestSignIn() {
-    Log.d(TAG, "Requesting sign-in");
-
     GoogleSignInOptions signInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail()
         .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
         .build();
@@ -98,21 +95,24 @@ public class MainActivity extends AppCompatActivity {
    * #requestSignIn()}.
    */
   private void handleSignInResult(Intent result) {
-    GoogleSignIn.getSignedInAccountFromIntent(result).addOnSuccessListener(googleAccount -> {
-      Log.d(TAG, "Signed in as " + googleAccount.getEmail());
+    GoogleSignIn.getSignedInAccountFromIntent(result)
+        .addOnSuccessListener(googleAccount -> {
+          Toast.makeText(this, "Signed in as " + googleAccount.getEmail(), Toast.LENGTH_LONG).show();
 
-      // Use the authenticated account to sign in to the Drive service.
-      GoogleAccountCredential credential =
-          GoogleAccountCredential.usingOAuth2(this, Collections.singleton(DriveScopes.DRIVE_FILE));
-      credential.setSelectedAccount(googleAccount.getAccount());
-      Drive googleDriveService =
-          new Drive.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), credential).setApplicationName(
-              "Drive API Migration").build();
+          // Use the authenticated account to sign in to the Drive service.
+          GoogleAccountCredential credential =
+              GoogleAccountCredential.usingOAuth2(this, Collections.singleton(DriveScopes.DRIVE_FILE));
+          credential.setSelectedAccount(googleAccount.getAccount());
+          Drive googleDriveService =
+              new Drive.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), credential).setApplicationName(
+                  "Drive API Migration").build();
 
-      // The DriveServiceHelper encapsulates all REST API and SAF functionality.
-      // Its instantiation is required before handling any onClick actions.
-      mDriveServiceHelper = new DriveServiceHelper(googleDriveService);
-    }).addOnFailureListener(exception -> Log.e(TAG, "Unable to sign in.", exception));
+          // The DriveServiceHelper encapsulates all REST API and SAF functionality.
+          // Its instantiation is required before handling any onClick actions.
+          mDriveServiceHelper = new DriveServiceHelper(googleDriveService);
+        })
+        .addOnFailureListener(
+            exception -> Toast.makeText(this, "Unable to sign in. " + exception.getLocalizedMessage(), Toast.LENGTH_LONG).show());
   }
 
   /**
@@ -153,14 +153,7 @@ public class MainActivity extends AppCompatActivity {
     try {
       startActivity(intent);
     } catch (Exception e) {
-      Toast.makeText(this, R.string.error_open_file, Toast.LENGTH_SHORT).show();
+      Toast.makeText(this, "Cannot open file. " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
     }
-  }
-
-  /**
-   * Updates the UI to read-only mode.
-   */
-  private void setReadOnlyMode() {
-    mOpenFileId = null;
   }
 }
