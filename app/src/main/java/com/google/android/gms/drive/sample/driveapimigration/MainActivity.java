@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.Toast;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == Activity.RESULT_OK && resultData != null) {
           Uri uri = resultData.getData();
           if (uri != null) {
-            openFileFromFilePicker(uri);
+            openFileFromFilePicker(uri, null);
           }
         }
         break;
@@ -128,7 +129,8 @@ public class MainActivity extends AppCompatActivity {
    * Opens a file from its {@code uri} returned from the Storage Access Framework file picker
    * initiated by {@link #openFilePicker()}.
    */
-  private void openFileFromFilePicker(Uri uri) {
+  private void openFileFromFilePicker(Uri uri, String type) {
+    /*
     if (mDriveServiceHelper != null) {
       Log.d(TAG, "Opening " + uri.getPath());
 
@@ -139,6 +141,19 @@ public class MainActivity extends AppCompatActivity {
         // Files opened through SAF cannot be modified.
         setReadOnlyMode();
       }).addOnFailureListener(exception -> Log.e(TAG, "Unable to open file from picker.", exception));
+    }
+    */
+    Intent intent = new Intent(Intent.ACTION_VIEW);
+    if (type != null) {
+      intent.setDataAndType(uri, type);
+    } else {
+      intent.setData(uri);
+    }
+    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    try {
+      startActivity(intent);
+    } catch (Exception e) {
+      Toast.makeText(this, R.string.error_open_file, Toast.LENGTH_SHORT).show();
     }
   }
 
